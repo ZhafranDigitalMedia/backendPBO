@@ -7,8 +7,8 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import java.sql.*;
+import org.json.JSONObject;
 
-@WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -29,16 +29,32 @@ public class LoginServlet extends HttpServlet {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                // Ambil data user dari database
+
+                // ambil data user lengkap
+                int id = rs.getInt("id");
                 String name = rs.getString("name");
                 String role = rs.getString("role");
+                String noTelp = rs.getString("no_telp");
 
-                out.print("{");
-                out.print("\"message\":\"Login berhasil!\",");
-                out.print("\"name\":\"" + name + "\",");
-                out.print("\"email\":\"" + email + "\",");
-                out.print("\"role\":\"" + role + "\"");
-                out.print("}");
+                // generate token sederhana
+                String token = java.util.UUID.randomUUID().toString();
+
+                // objek user
+                JSONObject userObj = new JSONObject();
+                userObj.put("id", id);
+                userObj.put("name", name);
+                userObj.put("email", email);
+                userObj.put("role", role);
+                userObj.put("no_telp", noTelp);
+
+                // response JSON final
+                JSONObject json = new JSONObject();
+                json.put("message", "Login berhasil!");
+                json.put("token", token);
+                json.put("user", userObj);
+
+                out.print(json.toString());
+
             } else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 out.print("{\"error\":\"Email atau password salah!\"}");
